@@ -22,11 +22,11 @@ The only dependency is [jQuery](https://jquery.com/).
 
 Title | Preview
 ----- | ----
-Barebones demo | ![](https://raw.githubusercontent.com/MadLittleMods/jquery-carouselss/master/demos/barebones-demo/preview.gif)
-Custom Thumbnail demo | ![](https://raw.githubusercontent.com/MadLittleMods/jquery-carouselss/master/demos/custom-thumbnail-demo/preview.gif)
-Overlay demo | ![](https://raw.githubusercontent.com/MadLittleMods/jquery-carouselss/master/demos/overlay-demo/preview.gif)
-Next/Prev Controls demo | ![](https://raw.githubusercontent.com/MadLittleMods/jquery-carouselss/master/demos/next-prev-controls-demo/preview.gif)
-Frame switch fade transition demo | ![](https://raw.githubusercontent.com/MadLittleMods/jquery-carouselss/master/demos/frame-switch-fade-transition-demo/preview.gif)
+[Barebones demo](https://madlittlemods.github.io/jquery-carouselss/demos/barebones-demo/) | ![](https://raw.githubusercontent.com/MadLittleMods/jquery-carouselss/master/demos/barebones-demo/preview.gif)
+[Custom Thumbnail demo](https://madlittlemods.github.io/jquery-carouselss/demos/custom-thumbnail-demo/) | ![](https://raw.githubusercontent.com/MadLittleMods/jquery-carouselss/master/demos/custom-thumbnail-demo/preview.gif)
+[Overlay demo](https://madlittlemods.github.io/jquery-carouselss/demos/overlay-demo/) | ![](https://raw.githubusercontent.com/MadLittleMods/jquery-carouselss/master/demos/overlay-demo/preview.gif)
+[Next/Prev Controls demo](https://madlittlemods.github.io/jquery-carouselss/demos/next-prev-controls-demo/) | ![](https://raw.githubusercontent.com/MadLittleMods/jquery-carouselss/master/demos/next-prev-controls-demo/preview.gif)
+[Frame switch fade transition demo](https://madlittlemods.github.io/jquery-carouselss/demos/frame-switch-fade-transition-demo/) | ![](https://raw.githubusercontent.com/MadLittleMods/jquery-carouselss/master/demos/frame-switch-fade-transition-demo/preview.gif)
 
 
 
