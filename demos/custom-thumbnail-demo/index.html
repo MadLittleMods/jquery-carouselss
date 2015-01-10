@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>CarouselSS - Custom Thumbnail demo</title>
+
+	<script src="../_base/js/jquery-1.11.1.js"></script>
+	<script src="../../jquery-carouselss.js"></script>
+
+	<script class="carouselss-demo-script">
+		$(document).ready(function() {
+			$('.carousel').carouselss();
+		});
+	</script>
+
+	<style class="carouselss-demo-styles">
+		img
+		{
+			display: block;
+			max-width: 100%;
+			height: auto;
+		}
+
+		.carousel
+		{
+			display: table;
+		}
+
+		.carousel-stage
+		{
+			position: relative;
+			display: table;
+
+			width: 400px;
+			height: 200px;
+
+			border: 3px solid #000000;
+		}
+
+		.carousel-frame
+		{
+			position: absolute;
+			top: 0;
+			left: 0;
+			bottom: 0;
+			right: 0;
+		}
+
+		.carousel-thumbnail-holder
+		{
+			display: table;
+
+			width: 100%;
+
+			margin: 0;
+			margin-top: 8px;
+			padding: 0;
+
+			text-align: center;
+
+			list-style: none;
+
+			font-size: 0;
+			line-height: 0;
+		}
+
+		.carousel-thumbnail
+		{
+			display: inline-block;
+			vertical-align: middle;
+
+			width: 16px;
+			height: 16px;
+
+			margin: 0 4px;
+
+			background: #31a890;
+			background: rgba(49, 168, 144, 0.8);
+			border: 2px solid transparent;
+
+			cursor: pointer;
+			cursor: hand;
+			
+			border-radius: 16px;
+
+			-webkit-transition: all 0.3s ease;
+			transition: all 0.3s ease;
+		}
+		.carousel-thumbnail:focus
+		{
+			outline: none;
+
+			-webkit-box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.5);
+			box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.5);
+		}
+		.carousel-thumbnail.is-active
+		{
+			border: 2px solid #25f5cb;
+			-webkit-box-shadow: 0 0 0 4px rgba(0, 0, 0, 0.5);
+			box-shadow: 0 0 0 4px rgba(0, 0, 0, 0.5);
+		}
+
+		.carousel-thumbnail > *
+		{
+			display: none;
+		}
+
+	</style>
+
+
+	<!-- Ignore this script. For demo housekeeping -->
+	<script src="../_base/js/carouselss-demo.bits.js"></script>
+</head>
+<body>
+	<h1 class="carouselss-demo-title"><a href="https://github.com/MadLittleMods/jquery-carouselss">CarouselSS</a> - Custom Thumbnail demo</h1>
+
+	<div class="carouselss-demo-markup">
+		<div class="carousel">
+			<div class="carousel-stage"></div>
+
+			<ul class="carousel-thumbnail-holder">
+				<li role="button" tabindex="0" class="carousel-thumbnail">
+					<img src="../_base/images/mountains.png" alt="Mountains">
+				</li>
+				<li role="button" tabindex="0" class="carousel-thumbnail">
+					<img src="../_base/images/lorem.png" alt="Lorem">
+				</li>
+				<li role="button" tabindex="0" class="carousel-thumbnail">
+					<img src="../_base/images/creek.png" alt="Creek">
+				</li>
+			</ul>
+		</div>
+	</div>
+</body>
+</html>

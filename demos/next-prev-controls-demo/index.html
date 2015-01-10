@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>CarouselSS - next/prev Controls demo</title>
+
+	<script src="../_base/js/jquery-1.11.1.js"></script>
+	<script src="../../jquery-carouselss.js"></script>
+
+	<script class="carouselss-demo-script">
+		$(document).ready(function() {
+			$('.carousel').carouselss();
+
+			$('.carousel-prev-control').on('click', function() {
+				$('.carousel').trigger('carouselssinstance', function(carousel) {
+					carousel.prev();
+				});
+			});
+
+			$('.carousel-next-control').on('click', function() {
+				$('.carousel').trigger('carouselssinstance', function(carousel) {
+					carousel.next();
+				});
+			});
+		});
+	</script>
+
+	<style class="carouselss-demo-styles">
+		img
+		{
+			display: block;
+			max-width: 100%;
+			height: auto;
+		}
+
+		.carousel
+		{
+			display: table;
+
+			text-align: center;
+		}
+
+		.carousel-stage
+		{
+			position: relative;
+			display: inline-block;
+
+			width: 400px;
+			height: 200px;
+
+			border: 3px solid #000000;
+		}
+
+		.carousel-frame
+		{
+			position: absolute;
+			top: 0;
+			left: 0;
+			bottom: 0;
+			right: 0;
+		}
+
+		.carousel-controls
+		{
+			margin-top: 8px;
+		}
+
+		.carousel-prev-control,
+		.carousel-next-control
+		{
+			padding: 12px 18px;
+
+			background: rgba(0, 0, 0, 0);
+			border: 2px solid #00cc66;
+
+			color: #00cc66;
+			font-size: 24px;
+			font-weight: bold;
+
+			cursor: pointer;
+			cursor: hand;
+
+			border-radius: 4px;
+
+			-webkit-transition: all 0.3s ease;
+			transition: all 0.3s ease;
+		}
+		.carousel-prev-control:hover,
+		.carousel-prev-control:focus,
+		.carousel-next-control:hover,
+		.carousel-next-control:focus
+		{
+			background: rgba(0, 0, 0, 0.1);
+
+			outline: none;
+		}
+	
+		.carousel-thumbnail-holder
+		{
+			display: table;
+
+			margin: 0;
+			margin-top: 8px;
+			padding: 0;
+
+			list-style: none;
+
+			font-size: 0;
+			line-height: 0;
+		}
+
+		.carousel-thumbnail
+		{
+			position: relative;
+
+			display: inline-block;
+			vertical-align: top;
+
+			width: 150px;
+
+			font-size: 16px;
+			line-height: 1.25;
+
+			cursor: pointer;
+			cursor: hand;
+		}
+		.carousel-thumbnail:focus
+		{
+			outline: none;
+		}
+
+		.carousel-thumbnail:after
+		{
+			content: '';
+
+			position: absolute;
+			top: 0;
+			bottom: 0;
+			left: 0;
+			right: 0;
+		}
+		.carousel-thumbnail:focus:after
+		{
+			outline: none;
+
+			-webkit-box-shadow: inset 0 0 0 2px #008241;
+			box-shadow: inset 0 0 0 2px #008241;
+		}
+		.carousel-thumbnail.is-active:after
+		{
+			-webkit-box-shadow: inset 0 0 0 4px #00cc66;
+			box-shadow: inset 0 0 0 4px #00cc66;
+		}
+	</style>
+
+
+	<!-- Ignore this script. For demo housekeeping -->
+	<script src="../_base/js/carouselss-demo.bits.js"></script>
+</head>
+<body>
+	<h1 class="carouselss-demo-title"><a href="https://github.com/MadLittleMods/jquery-carouselss">CarouselSS</a> - next/prev Controls demo</h1>
+
+	<div class="carouselss-demo-markup">
+		<div class="carousel">
+			<div class="carousel-stage"></div>
+
+			<ul class="carousel-thumbnail-holder">
+				<li role="button" tabindex="0" class="carousel-thumbnail">
+					<img src="../_base/images/mountains.png" alt="Mountains">
+				</li>
+				<li role="button" tabindex="0" class="carousel-thumbnail">
+					<img src="../_base/images/lorem.png" alt="Lorem">
+				</li>
+				<li role="button" tabindex="0" class="carousel-thumbnail">
+					<img src="../_base/images/creek.png" alt="Creek">
+				</li>
+			</ul>
+
+			<div class="carousel-controls">
+				<button class="carousel-prev-control">Prev</button>
+				<button class="carousel-next-control">Next</button>
+			</div>
+		</div>
+	</div>
+</body>
+</html>
