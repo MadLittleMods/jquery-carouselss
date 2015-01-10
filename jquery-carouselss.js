@@ -1,6 +1,9 @@
-// CarouselSS = CSS (clever, maybe)
-// Because we use and listen to CSS transitions/animations for frame switching and use class-based states
-// By: Eric Eastwood
+// CarouselSS
+// A jQuery Carousel plugin. It listens to CSS transition/animation events when switching frames and uses CSS class-based states.
+//
+// https://github.com/MadLittleMods/jquery-carouselss
+//
+// By: Eric Eastwood: EricEastwood.com
 (function (root, factory) {
 	if (typeof define === 'function' && define.amd) {
 		// AMD. Register as an anonymous module.
