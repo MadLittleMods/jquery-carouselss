@@ -170,15 +170,25 @@
 	var pluginName = "carouselss";
 
 
+	// Default options
 	var defaults = {
-		// Options
-		'interval': 3000, // a negative value disables the auto-advance
-		'startIndex': 0, // this will be clamped to the available thumbnail indexs
+		// Time between the auto-advance goes to the next frame (in ms, 3000 = 3 seconds)
+		// A negative value disables the auto-advance
+		'interval': 3000,
+		// Which frame (zero-indexed) of the thumbnail list we should start at.
+		// This will be clamped to the available thumbnail indexes
+		'startIndex': 0,
+		// Selector used to find the thumbnails within the root carousel element
 		'thumbnail': '.carousel-thumbnail',
+		// Selector used to find the stage to put each frame as they cycle
 		'stage': '.carousel-stage',
-		'stageFrameClass': 'carousel-frame', // class name that gets applied
+		// The class added to the wrapper "frame" element that contains the frame contents
+		'stageFrameClass': 'carousel-frame',
 
 		// Events
+
+		// Gets executed every time the carousel moves to another frame
+		// The move event can also be bound after plugin intialization using `$('.carousel').bind('carouselssmove', function() { });`
 		'move': null
 	};
 
@@ -276,6 +286,9 @@
 
 		this.startInterval = function() {
 			var self = this;
+
+			// Make sure any previous interval is cleared
+			this.stopInterval();
 
 			if(this.opts.interval > 0) {
 				// Set up an initial interval to move forward
