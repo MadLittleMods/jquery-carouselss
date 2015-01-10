@@ -1,6 +1,6 @@
 # CarouselSS
 
-CarouselSS, pronounced "carousel s-s", is jQuery Carousel plugin for HTML content/images. It listens to CSS transition/animation events when switching frames so you don't have to arbitrarly define a duration in the option passed into the plugin declaration. CarouselSS uses CSS class-based states.
+CarouselSS, pronounced "carousel s-s", is jQuery Carousel plugin for HTML content/images. It listens to CSS transition/animation events when switching frames and uses CSS class-based states.
 
 # Usage
 
