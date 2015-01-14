@@ -24,150 +24,6 @@
 
 	"use strict";
 
-	// A better modulo function that works the way you expect
-	function mod(x, m) {
-		return (x%m + m)%m;
-	}
-
-	// via: http://stackoverflow.com/a/5830517/796832
-	function css(a)
-	{
-		var sheets = document.styleSheets, o = {};
-		for (var i in sheets) {
-			var rules = sheets[i].rules || sheets[i].cssRules;
-			for (var r in rules) {
-				if (a.is(rules[r].selectorText)) {
-					o = $.extend(o, css2json(rules[r].style), css2json(a.attr('style')));
-				}
-			}
-		}
-		return o;
-	}
-	function css2json(css)
-	{
-		var s = {};
-		if (!css) return s;
-		if (css instanceof CSSStyleDeclaration) {
-			for (var i in css) {
-				if ((css[i]).toLowerCase) {
-					s[(css[i]).toLowerCase()] = (css[css[i]]);
-				}
-			}
-		} else if (typeof css == "string") {
-			css = css.split("; ");
-			for (var i in css) {
-				var l = css[i].split(": ");
-				s[l[0].toLowerCase()] = (l[1]);
-			}
-		}
-		return s;
-	}
-
-
-	function getCSSKeyframeList()
-	{
-		// Returns any defined CSS keyframes in the document
-		var keyframeList = {};
-
-		for(var stylesheetIndex = 0; stylesheetIndex < document.styleSheets.length; stylesheetIndex++) {
-			var stylesheet = document.styleSheets[stylesheetIndex];
-
-			var rules = stylesheet.cssRules || stylesheet.rules;
-			if(rules) {
-				for(var i = 0; i < rules.length; i++) {
-					var rule = rules[i];
-
-					var CSSKeyframesRule = window.CSSKeyframesRule || false;
-					if(CSSKeyframesRule && rule instanceof CSSKeyframesRule) {
-						//console.log('found:', rule.name);
-						keyframeList[rule.name] = true;
-					}
-				}
-			}
-		}
-
-		return keyframeList;
-	}
-
-	function hasTransitionFromChange(element, changeFunc)
-	{
-		var maxTransitionDuration = false;
-
-		var durationString = element.css('transition-duration');
-		if(durationString) {
-			var durations = durationString.split(/,\s*/);
-			var hasTransitionDuration = false;
-			for(var i = 0; i < durations.length; i++) {
-				var durationString = durations[i];
-				durationString = durationString || "";
-				var durationStringMatches = durationString.match(/(\d*?\.?\d*?)(s|ms)/i);
-				var duration = parseFloat(durationStringMatches[1], 10) * (durationStringMatches[2] == "ms" ? 0.001 : 1);
-
-				if(duration != null && duration > 0) {
-					hasTransitionDuration = true;
-				}
-				if(duration > maxTransitionDuration) {
-					maxTransitionDuration = duration;
-				}
-			}
-		}
-
-
-		// If there is a duration greater than zero then there is something to transition possibly
-		if(hasTransitionDuration) {
-			// Get a before and after snapshot
-			var beforeDeprecatedCSS = css(element);
-			changeFunc();
-			var afterDeprecatedCSS = css(element);
-
-			var transitionProperties = element.css('transition-property').split(/,\s*/);
-
-			for(var j = 0; j < transitionProperties.length; j++) {
-				var property = transitionProperties[j];
-
-				if(beforeDeprecatedCSS[property] != afterDeprecatedCSS[property]) {
-					return maxTransitionDuration;
-					//break;
-				}
-			}
-		}
-		else {
-			// They are still expecting the change, but we don't have to do anything
-			changeFunc();
-			return false;
-		}
-		
-	}
-
-
-	function hasAnimation(element)
-	{
-		var nameString = element.css('animation-name');
-		var durationStringMatches = element.css('animation-duration') || "";
-		var duration = parseFloat(durationStringMatches[1], 10) * (durationStringMatches[2] == "ms" ? 0.001 : 1);
-
-		if(nameString && nameString != 'none') {
-			// We use this to make sure the keyframes exist
-			var cssKeyframeList = getCSSKeyframeList();
-
-			var names = nameString.split(/,\s*/);
-			for(var i = 0; i < names.length; i++)
-			{
-				var name = names[i];
-
-				var doKeyframesExist = !!cssKeyframeList[name];
-
-				if(doKeyframesExist)
-				{
-					return duration;
-				}
-			}
-		}
-
-		return false;
-	}
-
-
 
 	// CarouselSS (`CSS`)
 	var pluginName = "carouselss";
@@ -364,11 +220,12 @@
 				var maxTransitionOrAnimationTime = frameDelayMap[frameIndex];
 				// Otherwise add a value for this index
 				if(maxTransitionOrAnimationTime == null) {
-					var frameTransitionTime = hasTransitionFromChange(frame, function() {
+					var frameTransitionTime = getMaxTransitionDurationFromChange(frame, function() {
 						frame.addClass('is-deprecated');
 					});
-					// Check animation after the deprecated class is added from the check for transition above
-					var frameAnimationTime = hasAnimation(frame);
+					// Check animation AFTER the deprecated class is added from the check for transition above
+					// This will ensure that any new animation from the class being added is ready
+					var frameAnimationTime = getMaxAnimationDuration(frame);
 
 					// Set the map
 					frameDelayMap[frameIndex] = frameAnimationTime > frameTransitionTime ? frameAnimationTime : frameTransitionTime;
@@ -445,6 +302,276 @@
 	};
 
 	$.fn[pluginName]['defaults'] = defaults;
+
+
+
+
+
+	// A better modulo function that works the way you expect
+	function mod(x, m) {
+		return (x%m + m)%m;
+	}
+
+
+	// From https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/keys
+	Object.keys = Object.keys || (function() {
+		'use strict';
+		var hasOwnProperty = Object.prototype.hasOwnProperty,
+			hasDontEnumBug = !({ toString: null }).propertyIsEnumerable('toString'),
+			dontEnums = [
+				'toString',
+				'toLocaleString',
+				'valueOf',
+				'hasOwnProperty',
+				'isPrototypeOf',
+				'propertyIsEnumerable',
+				'constructor'
+			],
+			dontEnumsLength = dontEnums.length;
+		
+		return function(obj) {
+			if (typeof obj !== 'object' && (typeof obj !== 'function' || obj === null)) {
+				throw new TypeError('Object.keys called on non-object');
+			}
+			
+			var result = [], prop, i;
+			
+			for (prop in obj) {
+				if (hasOwnProperty.call(obj, prop)) {
+					result.push(prop);
+				}
+			}
+			
+			if (hasDontEnumBug) {
+				for (i = 0; i < dontEnumsLength; i++) {
+					if (hasOwnProperty.call(obj, dontEnums[i])) {
+						result.push(dontEnums[i]);
+					}
+				}
+			}
+			return result;
+		};
+	}());
+
+
+	// Pass in a element, and a callback that will be called to see if any properties on the elment have changed
+	// Then we compare the properties that have changed to the properties that are going to transition
+	//
+	// Unit Tests: http://jsfiddle.net/MadLittleMods/vhr9qxqh/
+	function getMaxTransitionDurationFromChange(element, changeFunc)
+	{
+		var durationInfo = getDurationInfo(element.css('transition-property'), element.css('transition-duration'), element.css('transition-delay'));
+		// If there is a duration greater than zero then there is something to transition possibly
+		if(durationInfo) {
+			// Get a before and after snapshot
+			var beforeDeprecatedCSS = css(element);
+			changeFunc();
+			var afterDeprecatedCSS = css(element);
+			
+			// Get the properties that will transition on this element
+			var transitionProperties = (element.css('transition-property') || '').split(/,\s*/);
+			
+			var currentValidatedLongestDuration = false;
+			
+			// Check to see if any of the properties that changed are in list of properties that will transition
+			for(var j = 0; j < transitionProperties.length; j++) {
+				var property = transitionProperties[j];
+				
+				var hasSomethingChanged = false;
+				if(property == 'all') {
+					// Loop through all of the properties and find one that has changed
+					var propertyKeys = Object.keys(beforeDeprecatedCSS);
+					for(var propIndex = 0; propIndex < propertyKeys.length; propIndex++) {
+						var key = propertyKeys[propIndex];
+						if(beforeDeprecatedCSS[key] != afterDeprecatedCSS[key]) {
+							hasSomethingChanged = true;
+							break;
+						}
+					}
+				}
+				else {
+					// Use jquery to find if different because it could be shorthand etc
+					hasSomethingChanged = $('<div></div>').css(beforeDeprecatedCSS).css(property) != $('<div></div>').css(afterDeprecatedCSS).css(property);
+				}
+				
+				// If the before-after values are different
+				if(hasSomethingChanged) {
+					var duration = durationInfo.map[property];
+					if(duration > currentValidatedLongestDuration) {
+						currentValidatedLongestDuration = duration;
+					}
+					//break;
+				}
+			}
+			
+			return currentValidatedLongestDuration;
+		}
+		
+		// They are still expecting the change, so we still need to run it but we don't have to do anything special
+		changeFunc();
+		return false;
+	}
+
+
+	// Returns the maximum animation duration affecting a element
+	// We check for multiple animations and whether the keyframe declarations exist
+	//
+	// Unit Tests: http://jsfiddle.net/MadLittleMods/ag2y7654/
+	function getMaxAnimationDuration(element) {
+		var nameString = element.css('animation-name') || undefined;
+		
+		// Make sure there actually is animation(s) defined in the declaration
+		if(nameString && nameString != 'none') {
+			// We use this to make sure the corresponding keyframes exist
+			var cssKeyframeList = getCSSKeyframeList();
+
+			var durationInfo = getDurationInfo(element.css('animation-name'), element.css('animation-duration'));
+			var currentValidatedLongestDuration = false;
+			
+			// There could be multiple, so split it up and iterate
+			var names = nameString.split(/,\s*/);
+			for(var i = 0; i < names.length; i++) {
+				var name = names[i];
+				
+				var keyframesExist = cssKeyframeList[name];
+				
+				if(keyframesExist) {
+					var duration = durationInfo.map[name];
+					if(duration > currentValidatedLongestDuration) {
+						currentValidatedLongestDuration = duration;
+					}
+					
+				}
+			}
+			
+			return currentValidatedLongestDuration;
+		}
+		
+		return false;
+	}
+
+
+	// Parameters:
+	// `nameString`: `$element.css('animation-name')` or `$element.css('transition-name')`
+	// `durationString`: `$element.css('animation-duration')` or `$element.css('transition-duration')`
+	// Will return object containing the `maxKey` and `map` of duration to name
+	function getDurationInfo(nameString, durationString, /*optional*/delayString) {
+		var durationMap = {};
+		var maxDurationKey = false;
+		var maxDurationValue = false;
+		
+		if(nameString && durationString) {
+			
+			var names = (nameString || '').split(/,\s*/);
+			var durations = (durationString || '').split(/,\s*/);
+			var delays = (delayString || '').split(/,\s*/);
+			
+			for(var i = 0; i < names.length; i++) {
+				var name = names[i];
+				var duration = durations[i];
+				var delay = delays[i];
+				
+				var durationValue = cssTimeValueToSeconds(duration);
+				var delayValue = cssTimeValueToSeconds(delay);
+				var timeTotal = delayValue + durationValue;
+				
+				
+				// Keep track if there is actually a duration
+				if(durationValue != null && durationValue > 0) {
+					durationMap[name] = timeTotal;
+				}
+				
+				// Keep track of the longest duration
+				if(durationValue > 0 && timeTotal > maxDurationValue) {
+					maxDurationKey = name;
+					maxDurationValue = timeTotal;
+				}
+			}
+		}
+		
+		return {
+			maxKey: maxDurationKey,
+			map: durationMap
+		};
+	}
+
+	// Converts CSS time value string(ex. 1s or 10ms) to a number in seconds
+	function cssTimeValueToSeconds(cssTimeValue) {
+		var matches = (cssTimeValue || '').match(/(\d*?\.?\d*?)(s|ms)/i);
+		var timeValue = parseFloat(matches[1], 10) * (matches[2] == "ms" ? 0.001 : 1);
+		
+		return timeValue;
+	}
+
+
+	// Returns any defined CSS keyframes in the document
+	function getCSSKeyframeList() {
+		var keyframeList = {};
+
+		for(var stylesheetIndex = 0; stylesheetIndex < document.styleSheets.length; stylesheetIndex++) {
+			var stylesheet = document.styleSheets[stylesheetIndex];
+
+			var rules = stylesheet.cssRules || stylesheet.rules;
+			if(rules) {
+				for(var i = 0; i < rules.length; i++) {
+					var rule = rules[i];
+
+					// Make sure it is the right type of rule
+					var CSSKeyframesRule = window.CSSKeyframesRule || false;
+					if(CSSKeyframesRule && rule instanceof CSSKeyframesRule) {
+						//console.log('found:', rule.name);
+						keyframeList[rule.name] = true;
+					}
+				}
+			}
+		}
+
+		return keyframeList;
+	}
+
+
+	// Get all CSS styles associated with an element
+	// via: http://stackoverflow.com/a/5830517/796832
+	function css(a) {
+		var sheets = document.styleSheets;
+		var o = {};
+		for (var i in sheets) {
+			var rules = sheets[i].rules || sheets[i].cssRules;
+			for (var r in rules) {
+				try {
+					if (a.is(rules[r].selectorText)) {
+						o = $.extend(o, css2json(rules[r].style), css2json(a.attr('style')));
+					}
+				}
+				catch(e) {
+					// Do nothing because it that property was unsupported and through a sizzle error
+				}
+			}
+		}
+		return o;
+	}
+	function css2json(css) {
+		var s = {};
+		if (!css) return s;
+		var CSSStyleDeclaration = window.CSSStyleDeclaration || false;
+		if (CSSStyleDeclaration && css instanceof CSSStyleDeclaration) {
+			for (var i = 0; i < css.length; i++) {
+				if ((css[i]).toLowerCase) {
+					s[(css[i]).toLowerCase()] = (css[css[i]]);
+				}
+			}
+		} else if (typeof css == "string") {
+			css = css.split("; ");
+			for (var i in css) {
+				var l = css[i].split(": ");
+				s[l[0].toLowerCase()] = (l[1]);
+			}
+		}
+		return s;
+	}
+
+
+
 
 
 	// Require modules that return functions get called, so defer a bit
