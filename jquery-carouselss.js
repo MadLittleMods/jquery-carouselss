@@ -117,6 +117,9 @@
 					// Move to the selected position
 					self.move($(this).index());
 
+					// Restart the interval so we get adequate time on the new frame
+					self.startInterval();
+
 					e.preventDefault();
 				}
 			});
