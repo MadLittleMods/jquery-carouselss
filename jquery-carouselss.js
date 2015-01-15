@@ -3,7 +3,7 @@
 //
 // https://github.com/MadLittleMods/jquery-carouselss
 //
-// By: Eric Eastwood: EricEastwood.com
+// By: Eric Eastwood - EricEastwood.com
 (function (root, factory) {
 	if (typeof define === 'function' && define.amd) {
 		// AMD. Register as an anonymous module.
@@ -230,7 +230,7 @@
 					// This will ensure that any new animation from the class being added is ready
 					var frameAnimationTime = getMaxAnimationDuration(frame);
 
-					// Set the map
+					// Cache it in the map
 					frameDelayMap[frameIndex] = frameAnimationTime > frameTransitionTime ? frameAnimationTime : frameTransitionTime;
 					// Update our running variable
 					maxTransitionOrAnimationTime = frameDelayMap[frameIndex];
@@ -240,6 +240,7 @@
 					frame.addClass('is-deprecated');
 				}
 
+				// Helper function so we only remove the frame once
 				var isCurrentFrameRemoved = false;
 				var removeCurrentFrame = function() {
 					if(!isCurrentFrameRemoved) {
@@ -262,13 +263,13 @@
 					// The animation/transition won't fire if you tab away and the frames keep on moving
 					setTimeout(function() {
 						removeCurrentFrame();
-					}, (maxTransitionOrAnimationTime + 0.017)*1000); // We add a 60hz frame time to make up for waiting for the normal event firing
+					}, (maxTransitionOrAnimationTime + 0.017)*1000); // We add a 60hz(0.017) frame time to make up for waiting for the normal event firing which usually happens on requesetAnimationFrame 60fps/hz
 				}
 			}
 		};
 
 
-		// In case they call it multiple times on the same element, clean up the prior instantiation
+		// In case they call this plugin multiple times on the same element, clean up the prior instantiation
 		this.destroy();
 		// Then (re)make it.
 		this.init();
@@ -286,9 +287,10 @@
 
 			var carousel = new Carousel(this, options);
 
-			// Allow you to call some methods via trigger callback
+			// Allows you to call some methods via trigger callback
 			/* 
 			$('.carousel').trigger('carouselssinstance', function(carousel) {
+				// Any internal carousel method is available here
 				carousel.next();
 			});
 			*/
@@ -297,6 +299,7 @@
 			});
 		});
 
+		// Helper method to help bind the plugin instance with a certain context.
 		function triggerBind($element, pluginInstance, eventName, method) {
 			$element.bind(eventName, function() {
 				method.apply(pluginInstance, Array.prototype.slice.call(arguments, 1));
@@ -304,10 +307,21 @@
 		}
 	};
 
+	// Other plugins store these for reference
+	// So we might as well do it too
 	$.fn[pluginName]['defaults'] = defaults;
 
 
 
+
+
+
+
+	// Helper methods start here
+	// ===============================================================================================================
+	// ===============================================================================================================
+	// ===============================================================================================================
+	// ===============================================================================================================
 
 
 	// A better modulo function that works the way you expect
@@ -316,6 +330,7 @@
 	}
 
 
+	// `Object.keys` polyfill
 	// From https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/keys
 	Object.keys = Object.keys || (function() {
 		'use strict';
@@ -454,10 +469,13 @@
 	}
 
 
+	// Will return object containing a `maxKey` and `map` of duration to name
+	// Also takes into account delays as an optional 3rd parameter
+	//
 	// Parameters:
 	// `nameString`: `$element.css('animation-name')` or `$element.css('transition-name')`
 	// `durationString`: `$element.css('animation-duration')` or `$element.css('transition-duration')`
-	// Will return object containing the `maxKey` and `map` of duration to name
+	// `delayString`: $element.css('animation-delay')` or `$element.css('transition-delay')`
 	function getDurationInfo(nameString, durationString, /*optional*/delayString) {
 		var durationMap = {};
 		var maxDurationKey = false;
@@ -498,7 +516,7 @@
 		};
 	}
 
-	// Converts CSS time value string(ex. 1s or 10ms) to a number in seconds
+	// Converts CSS time value string(ex. "1s" or "10ms") to a number in seconds
 	function cssTimeValueToSeconds(cssTimeValue) {
 		var matches = (cssTimeValue || '').match(/(\d*?\.?\d*?)(s|ms)/i);
 		var timeValue = parseFloat(matches[1], 10) * (matches[2] == "ms" ? 0.001 : 1);
@@ -577,7 +595,8 @@
 
 
 
-	// Require modules that return functions get called, so defer a bit
+	// Require modules that return functions get called,
+	// so we need to defer the exported module one level deep into a function
 	return function() {
 		return Carousel;
 	};
