@@ -8,7 +8,7 @@ The only dependency is [jQuery](https://jquery.com/).
 
 ```
 <script src="jquery-1.11.1.js"></script>
-<script src="jquery-carouselss.js"></script>
+<script src="jquery-carouselss-standalone.js"></script>
 
 <script>
 	$(document).ready(function() {
@@ -16,6 +16,11 @@ The only dependency is [jQuery](https://jquery.com/).
 	});
 </script>
 ```
+
+
+`jquery-carouselss-standalone.js` is a standalone build for browser use.
+
+`jquery-carouselss.js` is a un-bundled UMD module.
 
 
 # Demos

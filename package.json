@@ -1,0 +1,30 @@
+{
+  "name": "jquery-carouselss",
+  "version": "1.0.0",
+  "description": "CarouselSS, pronounced \"carousel s-s\", is jQuery Carousel plugin for HTML content/images. It listens to CSS transition/animation events when switching frames and uses CSS class-based states.",
+  "main": "jquery-carouselss.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build_standalone": "browserify ./jquery-carouselss.js --standalone carouselss | derequire -f define -t _defi_ | derequire -f require -t _dereq_ | uglifyjs > jquery-carouselss-standalone.js"
+  },
+  "browserify-shim": {
+    "jquery": "global:$"
+  },
+  "browserify": {
+    "transform": [ "browserify-shim" ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/MadLittleMods/jquery-carouselss.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/MadLittleMods/jquery-carouselss/issues"
+  },
+  "homepage": "https://github.com/MadLittleMods/jquery-carouselss",
+  "devDependencies": {
+    "browserify": "^8.1.1",
+    "derequire": "^1.2.0"
+  }
+}
