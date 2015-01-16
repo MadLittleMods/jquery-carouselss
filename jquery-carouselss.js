@@ -52,8 +52,7 @@
 	};
 
 	function Carousel(carousel_element, options) {
-
-
+		
 		this._defaults = defaults;
 		this._name = pluginName;
 
@@ -73,12 +72,12 @@
 		var animationEndEventString = 'animationend webkitAnimationEnd oAnimationEnd MSAnimationEnd';
 		var transitionEndEventString = 'transitionend webkitTransitionEnd oTransitionEnd MSTransitionEnd';
 
-		var frameDelayMap = {};
+		var frameDelayCache = {};
 
 
-		// We use this instead to allow for easy bind(init) and unbind(destroy)
+		// Helper binding function to allow for easy bind(init) and unbind(destroy)
 		var currentBindings = [];
-		var bind = function(element, selector, cb) {
+		function bind(element, selector, cb) {
 			// If the element exists
 			if(element.length > 0) {
 				// Actually bind
@@ -91,7 +90,7 @@
 					'callback': cb
 				});
 			}
-		};
+		}
 
 		this.init = function() {
 			var self = this;
@@ -113,7 +112,7 @@
 			$thumbnailElements = $carouselElement.find(this.opts.thumbnail);
 			bind($thumbnailElements, 'click keydown',function (e) {
 				// If click or spacebar, or enter is pressed
-				if(e.type == 'click' || (e.type == 'keydown' && (e.keyCode == 32 || e.keyCode == 13))) {
+				if(e.type === 'click' || (e.type === 'keydown' && (e.keyCode === 32 || e.keyCode === 13))) {
 					// Move to the selected position
 					self.move($(this).index());
 
@@ -126,7 +125,7 @@
 
 			// Reset the map
 			// Something may have changed in the styles so we better look it up again.
-			frameDelayMap = {};
+			frameDelayCache = {};
 		};
 
 		this.destroy = function() {
@@ -146,6 +145,7 @@
 			}
 		};
 
+		// Start the auto-advance cycling
 		this.startInterval = function() {
 			var self = this;
 
@@ -160,6 +160,7 @@
 			}
 		};
 
+		// Stop the auto-advance cycling
 		this.stopInterval = function() {
 			clearInterval(carouselInterval);
 		};
@@ -199,8 +200,8 @@
 				newFrameContents.wrapAll('<div class="' + this.opts.stageFrameClass + '" data-position="' + index + '"></div>');
 				newFrameContents = newFrameContents.parent();
 				// Prepend it to the beginning of the stage
-				// This ensures that the current frame is above the new frame so the current frame can "fade out"
-				// Also the frames are behind any overlay in the stage as well
+				// This ensures that the current frame is above the new frame(by the nature of document flow) so the current frame can "fade out"
+				// Also the frames will be behind any separate overlays in the stage if prepended
 				currentFrame = newFrameContents.prependTo($carouselStage);
 
 				// Update the carousel position
@@ -210,7 +211,7 @@
 				if(this.opts.move) {
 					this.opts.move(jQuery.Event('move'));
 				}
-				// Also fire the qualified `move` event
+				// Fire the qualified `move` event
 				$carouselElement.trigger(pluginName + 'move', jQuery.Event('move'));
 			}
 		};
@@ -219,10 +220,10 @@
 			if(frame) {
 				//console.log('frametodel:', frame.attr('data-position'));
 
-				// Look it up in the map
-				var maxTransitionOrAnimationTime = frameDelayMap[frameIndex];
-				// Otherwise add a value for this index
-				if(maxTransitionOrAnimationTime == null) {
+				// Look it up in the cache/map
+				var maxTransitionOrAnimationTime = frameDelayCache[frameIndex];
+				// If it wasn't in the cache, add a value for this index
+				if(!maxTransitionOrAnimationTime) {
 					var frameTransitionTime = getMaxTransitionDurationFromChange(frame, function() {
 						frame.addClass('is-deprecated');
 					});
@@ -231,12 +232,14 @@
 					var frameAnimationTime = getMaxAnimationDuration(frame);
 
 					// Cache it in the map
-					frameDelayMap[frameIndex] = frameAnimationTime > frameTransitionTime ? frameAnimationTime : frameTransitionTime;
+					frameDelayCache[frameIndex] = frameAnimationTime > frameTransitionTime ? frameAnimationTime : frameTransitionTime;
 					// Update our running variable
-					maxTransitionOrAnimationTime = frameDelayMap[frameIndex];
+					maxTransitionOrAnimationTime = frameDelayCache[frameIndex];
 				}
 				else {
-					// On our first run, we do this in the check for transition/animation
+					// The `is-deprecated` class is added in both the if and else.
+					// But we need to add it separatly because in order to get the transition time to put in the cache.
+					// We need to capture the styles before it is added, and then after. see `getMaxTransitionDurationFromChange`
 					frame.addClass('is-deprecated');
 				}
 
@@ -249,18 +252,17 @@
 					isCurrentFrameRemoved = true;
 				};
 
-				// If there is a animation or transition with a duration > 0
-				// Delete after animation/transition finishes
-				// Otherwise we delete right away
+				// If there is not animaiton/transition time, delete it right away
 				if(!maxTransitionOrAnimationTime) {
 					removeCurrentFrame();
 				}
+				// Otherwise, wait for the animation/transition to finish, then delete it
 				else {
 					frame.one(animationEndEventString + ' ' + transitionEndEventString, function() {
 						removeCurrentFrame();
 					});
 					// This is a safety-net in case the animation/transition event never fires
-					// The animation/transition won't fire if you tab away and the frames keep on moving
+					// Note: The animation/transition events won't fire when you tab away and the frames keep on moving
 					setTimeout(function() {
 						removeCurrentFrame();
 					}, (maxTransitionOrAnimationTime + 0.017)*1000); // We add a 60hz(0.017) frame time to make up for waiting for the normal event firing which usually happens on requesetAnimationFrame 60fps/hz
@@ -277,8 +279,8 @@
 		// Initialize the position
 		this.move(this.opts.startIndex || 0);
 
-
 	}
+
 
 	$.fn[pluginName] = function(options) {
 		// For each element passed in the jQuery object
@@ -309,7 +311,7 @@
 
 	// Other plugins store these for reference
 	// So we might as well do it too
-	$.fn[pluginName]['defaults'] = defaults;
+	$.fn[pluginName].defaults = defaults;
 
 
 
@@ -354,13 +356,13 @@
 			
 			var result = [], prop, i;
 			
-			for (prop in obj) {
+			for(prop in obj) {
 				if (hasOwnProperty.call(obj, prop)) {
 					result.push(prop);
 				}
 			}
 			
-			if (hasDontEnumBug) {
+			if(hasDontEnumBug) {
 				for (i = 0; i < dontEnumsLength; i++) {
 					if (hasOwnProperty.call(obj, dontEnums[i])) {
 						result.push(dontEnums[i]);
@@ -378,7 +380,14 @@
 	// Unit Tests: http://jsfiddle.net/MadLittleMods/vhr9qxqh/
 	function getMaxTransitionDurationFromChange(element, changeFunc)
 	{
-		var durationInfo = getDurationInfo(element.css('transition-property'), element.css('transition-duration'), element.css('transition-delay'));
+		var currentLongestDuration = false;
+
+		var durationInfo = getDurationInfo(
+			element.css('transition-property'),
+			element.css('transition-duration'),
+			element.css('transition-delay')
+		);
+
 		// If there is a duration greater than zero then there is something to transition possibly
 		if(durationInfo) {
 			// Get a before and after snapshot
@@ -389,45 +398,28 @@
 			// Get the properties that will transition on this element
 			var transitionProperties = (element.css('transition-property') || '').split(/,\s*/);
 			
-			var currentValidatedLongestDuration = false;
-			
-			// Check to see if any of the properties that changed are in list of properties that will transition
-			for(var j = 0; j < transitionProperties.length; j++) {
-				var property = transitionProperties[j];
+			// Check to see if any properties that are supposed to transition, actually changed to cause a transition
+			for(var i = 0; i < transitionProperties.length; i++) {
+				var property = transitionProperties[i];
+
+				var hasPropertyChanged = checkForPropertyChange(property, beforeDeprecatedCSS, afterDeprecatedCSS);
 				
-				var hasSomethingChanged = false;
-				if(property == 'all') {
-					// Loop through all of the properties and find one that has changed
-					var propertyKeys = Object.keys(beforeDeprecatedCSS);
-					for(var propIndex = 0; propIndex < propertyKeys.length; propIndex++) {
-						var key = propertyKeys[propIndex];
-						if(beforeDeprecatedCSS[key] != afterDeprecatedCSS[key]) {
-							hasSomethingChanged = true;
-							break;
-						}
-					}
-				}
-				else {
-					// Use jquery to find if different because it could be shorthand etc
-					hasSomethingChanged = $('<div></div>').css(beforeDeprecatedCSS).css(property) != $('<div></div>').css(afterDeprecatedCSS).css(property);
-				}
-				
-				// If the before-after values are different
-				if(hasSomethingChanged) {
+				if(hasPropertyChanged) {
 					var duration = durationInfo.map[property];
-					if(duration > currentValidatedLongestDuration) {
-						currentValidatedLongestDuration = duration;
+					if(duration > currentLongestDuration) {
+						currentLongestDuration = duration;
 					}
-					//break;
 				}
 			}
-			
-			return currentValidatedLongestDuration;
+		}
+		else {
+			// They are still expecting the change
+			// so we still need to run it but we don't have to do anything special
+			changeFunc();
 		}
 		
-		// They are still expecting the change, so we still need to run it but we don't have to do anything special
-		changeFunc();
-		return false;
+		
+		return currentLongestDuration;
 	}
 
 
@@ -477,9 +469,9 @@
 	// `durationString`: `$element.css('animation-duration')` or `$element.css('transition-duration')`
 	// `delayString`: $element.css('animation-delay')` or `$element.css('transition-delay')`
 	function getDurationInfo(nameString, durationString, /*optional*/delayString) {
-		var durationMap = {};
-		var maxDurationKey = false;
-		var maxDurationValue = false;
+		var durationMap = {},
+			maxDurationKey = false,
+			maxDurationValue = false;
 		
 		if(nameString && durationString) {
 			
@@ -498,7 +490,7 @@
 				
 				
 				// Keep track if there is actually a duration
-				if(durationValue != null && durationValue > 0) {
+				if(durationValue && durationValue > 0) {
 					durationMap[name] = timeTotal;
 				}
 				
@@ -519,15 +511,43 @@
 	// Converts CSS time value string(ex. "1s" or "10ms") to a number in seconds
 	function cssTimeValueToSeconds(cssTimeValue) {
 		var matches = (cssTimeValue || '').match(/(\d*?\.?\d*?)(s|ms)/i);
-		var timeValue = parseFloat(matches[1], 10) * (matches[2] == "ms" ? 0.001 : 1);
+		var timeValue = parseFloat(matches[1], 10) * (matches[2] === "ms" ? 0.001 : 1);
 		
 		return timeValue;
 	}
 
 
+	// Params:
+	// property: string - Accepts a css property name. Also syntax for transition properties (this includes "all")
+	// before: object output from `css(...)`
+	// after: object output from `css(...)`
+	function checkForPropertyChange(property, before, after) {
+		var hasSomethingChanged = false;
+		if(property === 'all') {
+			// Loop through all of the properties and find one that has changed
+			var propertyKeys = Object.keys(before);
+			for(var propIndex = 0; propIndex < propertyKeys.length; propIndex++) {
+				var key = propertyKeys[propIndex];
+				if(before[key] != after[key]) {
+					hasSomethingChanged = true;
+					break;
+				}
+			}
+		}
+		else {
+			// Use jquery to find if different because it could be shorthand etc
+			hasSomethingChanged = $('<div></div>').css(before).css(property) != $('<div></div>').css(after).css(property);
+		}
+
+		return hasSomethingChanged;
+	}
+
+
+
 	// Returns any defined CSS keyframes in the document
 	function getCSSKeyframeList() {
-		var keyframeList = {};
+		var keyframeList = {},
+			CSSKeyframesRule = window.CSSKeyframesRule || false;
 
 		for(var stylesheetIndex = 0; stylesheetIndex < document.styleSheets.length; stylesheetIndex++) {
 			var stylesheet = document.styleSheets[stylesheetIndex];
@@ -538,7 +558,6 @@
 					var rule = rules[i];
 
 					// Make sure it is the right type of rule
-					var CSSKeyframesRule = window.CSSKeyframesRule || false;
 					if(CSSKeyframesRule && rule instanceof CSSKeyframesRule) {
 						//console.log('found:', rule.name);
 						keyframeList[rule.name] = true;
@@ -553,52 +572,52 @@
 
 	// Get all CSS styles associated with an element
 	// via: http://stackoverflow.com/a/5830517/796832
-	function css(a) {
-		var sheets = document.styleSheets;
-		var o = {};
-		for (var i in sheets) {
+	function css(element) {
+		var sheets = document.styleSheets,
+			associatedStyles = {};
+
+		for(var i in sheets) {
 			var rules = sheets[i].rules || sheets[i].cssRules;
-			for (var r in rules) {
+			for(var r in rules) {
 				try {
-					if (a.is(rules[r].selectorText)) {
-						o = $.extend(o, css2json(rules[r].style), css2json(a.attr('style')));
+					if (element.is(rules[r].selectorText)) {
+						associatedStyles = $.extend(associatedStyles, css2json(rules[r].style), css2json(element.attr('style')));
 					}
 				}
 				catch(e) {
-					// Do nothing because it that property was unsupported and through a sizzle error
+					// Do nothing because it that property was unsupported and threw a sizzle error (mostly happens in old IE's)
 				}
 			}
 		}
-		return o;
+
+		return associatedStyles;
 	}
 	function css2json(css) {
-		var s = {};
-		if (!css) return s;
-		var CSSStyleDeclaration = window.CSSStyleDeclaration || false;
-		if (CSSStyleDeclaration && css instanceof CSSStyleDeclaration) {
-			for (var i = 0; i < css.length; i++) {
-				if ((css[i]).toLowerCase) {
-					s[(css[i]).toLowerCase()] = (css[css[i]]);
+		var s = {},
+			CSSStyleDeclaration = window.CSSStyleDeclaration || false;
+
+		if(css) {
+			if (CSSStyleDeclaration && css instanceof CSSStyleDeclaration) {
+				for (var i = 0; i < css.length; i++) {
+					if ((css[i]).toLowerCase) {
+						s[(css[i]).toLowerCase()] = (css[css[i]]);
+					}
+				}
+			} else if(typeof css === "string") {
+				var declarations = css.split(/;\s?/);
+				for (var declaration in declarations) {
+					var l = css[declaration].split(/:\s?/);
+					s[l[0].toLowerCase()] = (l[1]);
 				}
 			}
-		} else if (typeof css == "string") {
-			css = css.split("; ");
-			for (var i in css) {
-				var l = css[i].split(": ");
-				s[l[0].toLowerCase()] = (l[1]);
-			}
 		}
+
 		return s;
 	}
 
 
 
 
-
-	// Require modules that return functions get called,
-	// so we need to defer the exported module one level deep into a function
-	return function() {
-		return Carousel;
-	};
+	return Carousel;
 
 }));
