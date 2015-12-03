@@ -17,8 +17,9 @@
 		module.exports = factory(require('jquery'), require('./lib/mod'), require('./lib/get-max-animation-duration'), require('./lib/get-max-transition-duration-from-change'));
 	} else {
 		// Browser globals (root is window)
-		root.$ = root.$ || {}; // Make sure jQuery is set to atleast something
-		root.$.carouselss = factory(root.$, root.mod, root.getMaxAnimationDuration, root.getMaxTransitionDurationFromChange);
+		// Make sure jQuery is set to atleast something
+		var $ = root.$ || root.jQuery || {};
+		$.carouselss = factory($, root.mod, root.getMaxAnimationDuration, root.getMaxTransitionDurationFromChange);
 	}
 }(this, function($, mod, getMaxAnimationDuration, getMaxTransitionDurationFromChange) {
 
@@ -52,7 +53,7 @@
 	};
 
 	function Carousel(carousel_element, options) {
-		
+
 		this._defaults = defaults;
 		this._name = pluginName;
 
@@ -181,7 +182,7 @@
 			if(this.currentPosition != index && $thumbnailElements.length > 0) {
 				// Put the index in the array range
 				index = mod(index, $thumbnailElements.length);
-				
+
 				//console.log('moving to: ' + index);
 
 				var $thumbnail = $($thumbnailElements[index]);
@@ -290,7 +291,7 @@
 			var carousel = new Carousel(this, options);
 
 			// Allows you to call some methods via trigger callback
-			/* 
+			/*
 			$('.carousel').trigger('carouselssinstance', function(carousel) {
 				// Any internal carousel method is available here
 				carousel.next();
@@ -318,6 +319,6 @@
 
 
 	return Carousel;
-	
+
 
 }));

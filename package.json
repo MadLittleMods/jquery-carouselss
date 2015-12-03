@@ -11,7 +11,9 @@
     "jquery": "global:$"
   },
   "browserify": {
-    "transform": [ "browserify-shim" ]
+    "transform": [
+      "browserify-shim"
+    ]
   },
   "repository": {
     "type": "git",
@@ -25,6 +27,8 @@
   "homepage": "https://github.com/MadLittleMods/jquery-carouselss",
   "devDependencies": {
     "browserify": "^8.1.1",
-    "derequire": "^1.2.0"
+    "browserify-shim": "^3.8.11",
+    "derequire": "^1.2.0",
+    "uglify-js": "^2.6.1"
   }
 }
